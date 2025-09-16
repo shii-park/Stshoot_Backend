@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
+	"strings"
 
 	"github.com/shii-park/Stshoot_Backend/internal/broadcaster"
 	"github.com/shii-park/Stshoot_Backend/internal/handler"
@@ -10,13 +12,43 @@ import (
 
 func main() {
 
-	receiver := &broadcaster.Receiver{}
+	hubManager := broadcaster.NewHubManager()
 
-	hub := broadcaster.NewHub(receiver)
-	go hub.Run()
+	mux := http.NewServeMux()
 
-	http.HandleFunc("/ws/receiver", func(w http.ResponseWriter, r *http.Request) { handler.HandleReceiver(w, r, receiver) })
-	http.HandleFunc("/ws/sender", func(w http.ResponseWriter, r *http.Request) { handler.HandleSender(w, r, hub) })
+	mux.HandleFunc("/ws/sender/", func(w http.ResponseWriter, r *http.Request) {
+		roomID := strings.TrimPrefix(r.URL.Path, "/ws/sender/")
+		if roomID == "" {
+			http.Error(w, "Room ID is required", http.StatusBadRequest)
+			return
+		}
+
+		hub, err := hubManager.GetHub(roomID)
+		if err != nil {
+			http.Error(w, "Hub not found: "+err.Error(), http.StatusNotFound)
+			return
+		}
+		handler.HandleSender(w, r, hub)
+	})
+	mux.HandleFunc("/ws/receiver/", func(w http.ResponseWriter, r *http.Request) {
+		roomID := strings.TrimPrefix(r.URL.Path, "/ws/receiver/")
+		if roomID == "" {
+			http.Error(w, "Room ID is required", http.StatusBadRequest)
+			return
+		}
+		hub, err := hubManager.GetHub(roomID)
+		if err != nil {
+			http.Error(w, "Hub not found: "+err.Error(), http.StatusNotFound)
+			return
+		}
+		receiver := hub.Receiver
+		handler.HandleReceiver(w, r, receiver)
+	})
+	mux.HandleFunc("/create", func(w http.ResponseWriter, r *http.Request) {
+		handler.HandleCreate(w, r, hubManager)
+	})
 	fmt.Println("WebSocket server started on ws://localhost:80/ws")
-	http.ListenAndServe(":80", nil)
+	if err := http.ListenAndServe(":80", mux); err != nil {
+		log.Fatal("ListenAndServe: ", err)
+	}
 }
