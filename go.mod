@@ -1,4 +1,4 @@
-module github.com/shii-park/Stshoot_Backend.git
+module github.com/shii-park/Stshoot_Backend
 
 go 1.23.4
 
