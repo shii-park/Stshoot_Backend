@@ -1,7 +1,11 @@
 package broadcaster
 
 import (
+	"encoding/json"
 	"fmt"
+	"log"
+
+	"github.com/shii-park/Stshoot_Backend/internal/model"
 
 	"github.com/gorilla/websocket"
 )
@@ -26,13 +30,18 @@ func (c *SenderClient) ReadPump() {
 		c.Conn.Close()
 	}()
 	for {
-		_, message, err := c.Conn.ReadMessage()
+		var msg model.Message
+		err := c.Conn.ReadJSON(&msg)
 		if err != nil {
 			break
 		}
-		// メッセージに送信元情報を付加する
-		senderInfo := fmt.Sprintf("[%s says]: ", c.Conn.RemoteAddr())
-		fullMessage := append([]byte(senderInfo), message...)
-		c.Hub.Broadcast <- fullMessage
+
+		jsonBytes, err := json.Marshal(msg)
+
+		if err != nil {
+			log.Printf("error marshalling json: %v", err)
+			continue
+		}
+		c.Hub.Broadcast <- jsonBytes
 	}
 }
