@@ -42,7 +42,7 @@ func main() {
 			return
 		}
 		receiver := hub.Receiver
-		handler.HandleReceiver(w, r, receiver)
+		handler.HandleReceiver(w, r, receiver, hubManager, roomID)
 	})
 	mux.HandleFunc("/create", func(w http.ResponseWriter, r *http.Request) {
 		handler.HandleCreate(w, r, hubManager)

@@ -27,7 +27,7 @@ func HandleSender(w http.ResponseWriter, r *http.Request, hub *broadcaster.Hub) 
 	go client.ReadPump()
 }
 
-func HandleReceiver(w http.ResponseWriter, r *http.Request, receiver *broadcaster.Receiver) {
+func HandleReceiver(w http.ResponseWriter, r *http.Request, receiver *broadcaster.Receiver, hubManager *broadcaster.HubManager, roomID string) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Printf("Failed to upgrade receiver connection: %v", err)
@@ -41,6 +41,7 @@ func HandleReceiver(w http.ResponseWriter, r *http.Request, receiver *broadcaste
 	for {
 		if _, _, err := conn.ReadMessage(); err != nil {
 			receiver.ClearConnection()
+			hubManager.DeleteHub(roomID)
 			break
 		}
 	}
