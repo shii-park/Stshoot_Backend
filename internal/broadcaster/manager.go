@@ -49,3 +49,13 @@ func (m *HubManager) CreateHub() (string, error) {
 	}
 
 }
+
+func (m *HubManager) DeleteHub(roomID string) {
+	m.Mu.Lock()
+	defer m.Mu.Unlock()
+
+	if _, ok := m.Hubs[roomID]; ok {
+		delete(m.Hubs, roomID)
+		log.Printf("Hub for room '%s' has been deleted.", roomID)
+	}
+}
