@@ -54,7 +54,9 @@ func (m *HubManager) DeleteHub(roomID string) {
 	m.Mu.Lock()
 	defer m.Mu.Unlock()
 
-	if _, ok := m.Hubs[roomID]; ok {
+	if hub, ok := m.Hubs[roomID]; ok {
+		close(hub.stop) 
+
 		delete(m.Hubs, roomID)
 		log.Printf("Hub for room '%s' has been deleted.", roomID)
 	}
