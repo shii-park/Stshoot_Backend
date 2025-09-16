@@ -1,8 +1,10 @@
 package handler
 
 import (
-	"fmt"
+	"log"
 	"net/http"
+
+	"github.com/shii-park/Stshoot_Backend/internal/broadcaster"
 
 	"github.com/gorilla/websocket"
 )
@@ -13,25 +15,33 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-func HandleWebSocket(w http.ResponseWriter, r *http.Request) {
-	conn, err := upgrader.Upgrade(w, r, nil)
+func HandleSender(w http.ResponseWriter, r *http.Request, hub *broadcaster.Hub) {
+	conn, err := upgrader.Upgrade(w, r, nil) // wsにアップグレード
 	if err != nil {
-		fmt.Println("WebSocket connection failed:", err)
+		log.Printf("Failed to upgrade sender connection: %v", err)
 		return
 	}
+	client := &broadcaster.SenderClient{Hub: hub, Conn: conn}
+	client.Hub.Register <- client
 
-	go handleConnection(conn) //一つのコネクションに対してゴルーチンで並列にあつかう
+	go client.ReadPump()
 }
 
-func handleConnection(conn *websocket.Conn) {
-	defer conn.Close()
-
-	welcomeMessage := []byte("サーバーへの接続に成功しました！")
-	println("Someone connected")
-
-	if err := conn.WriteMessage(websocket.TextMessage, welcomeMessage); err != nil {
-
-		fmt.Println("Failed to write welcome message:", err)
+func HandleReceiver(w http.ResponseWriter, r *http.Request, receiver *broadcaster.Receiver) {
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Printf("Failed to upgrade receiver connection: %v", err)
 		return
+	}
+	if err := receiver.SetConnection(conn); err != nil {
+		log.Printf("Failed to set receiver connection: %v", err)
+		conn.Close()
+		return
+	}
+	for {
+		if _, _, err := conn.ReadMessage(); err != nil {
+			receiver.ClearConnection()
+			break
+		}
 	}
 }
