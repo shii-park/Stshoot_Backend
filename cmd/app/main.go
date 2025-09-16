@@ -48,7 +48,7 @@ func main() {
 		handler.HandleCreate(w, r, hubManager)
 	})
 	fmt.Println("WebSocket server started on ws://localhost:80/ws")
-	if err := http.ListenAndServe(":80", mux); err != nil {
+	if err := http.ListenAndServe(":10000", mux); err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
 }
