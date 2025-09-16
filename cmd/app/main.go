@@ -10,5 +10,5 @@ import (
 func main() {
 	http.HandleFunc("/ws", handler.HandleWebSocket)
 	fmt.Println("WebSocket server started on ws://localhost:8080/ws")
-	http.ListenAndServe(":8080", nil)
+	http.ListenAndServe(":80", nil)
 }
