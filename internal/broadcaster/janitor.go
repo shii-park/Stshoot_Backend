@@ -9,9 +9,8 @@ func (m *HubManager) runJanitor() {
 	ticker := time.NewTicker(1 * time.Minute)
 	defer ticker.Stop()
 
-	var inactiveHubIDs []string
-
 	for range ticker.C {
+		var inactiveHubIDs []string
 
 		m.Mu.RLock()
 		for id, hub := range m.Hubs {
@@ -23,10 +22,10 @@ func (m *HubManager) runJanitor() {
 			hub.mu.RUnlock()
 		}
 		m.Mu.RUnlock()
-	}
-	for _, id := range inactiveHubIDs {
-		log.Printf("Janitor: Deleting inactive hub for room '%s'", id)
-		m.DeleteHub(id)
+		for _, id := range inactiveHubIDs {
+			log.Printf("Janitor: Deleting inactive hub for room '%s'", id)
+			m.DeleteHub(id)
+		}
 	}
 
 }
