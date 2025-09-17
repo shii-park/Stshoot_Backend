@@ -45,7 +45,7 @@ func (h *Hub) Run() {
 				log.Printf("Sender client disconnected. Total senders: %d", len(h.Clients))
 			}
 		case message := <-h.Broadcast: // メッセージが送られてきたとき
-			if err := h.Receiver.Send(message); err != nil {
+			if err := h.Receiver.send(message); err != nil {
 				log.Printf("Could not send message to receiver: %v", err)
 			}
 		case <-h.stop: // stopチャネルが閉じられたとき
@@ -56,7 +56,7 @@ func (h *Hub) Run() {
 }
 
 // Receiverに対してJSONを送信する
-func (r *Receiver) Send(message []byte) error {
+func (r *Receiver) send(message []byte) error {
 	r.Mu.RLock()
 	defer r.Mu.RUnlock()
 	if r.Conn == nil {
