@@ -47,7 +47,7 @@ func main() {
 	mux.HandleFunc("/create", func(w http.ResponseWriter, r *http.Request) {
 		handler.HandleCreate(w, r, hubManager)
 	})
-	fmt.Println("WebSocket server started on ws://localhost:80/ws")
+	fmt.Println("WebSocket server started")
 	if err := http.ListenAndServe(":10000", mux); err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
