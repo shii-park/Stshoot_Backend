@@ -21,6 +21,7 @@ func NewHubManager() *HubManager {
 	return m
 }
 
+// roomIDから*Hubを取得する
 func (m *HubManager) GetHub(roomID string) (*Hub, error) {
 	m.Mu.RLock()
 	defer m.Mu.RUnlock()
@@ -31,6 +32,7 @@ func (m *HubManager) GetHub(roomID string) (*Hub, error) {
 
 }
 
+// Hubを作成する
 func (m *HubManager) CreateHub() (string, error) {
 	m.Mu.Lock()
 	defer m.Mu.Unlock()

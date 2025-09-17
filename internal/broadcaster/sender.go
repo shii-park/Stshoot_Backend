@@ -14,6 +14,7 @@ type SenderClient struct {
 	Conn *websocket.Conn
 }
 
+// メッセージ読み取り
 func (c *SenderClient) ReadPump() {
 	defer func() {
 		c.Hub.Unregister <- c

@@ -13,6 +13,8 @@ type Receiver struct {
 	Mu   sync.RWMutex
 }
 
+
+// コネクション確立
 func (r *Receiver) SetConnection(conn *websocket.Conn) error {
 	r.Mu.Lock()
 	defer r.Mu.Unlock()
@@ -24,6 +26,7 @@ func (r *Receiver) SetConnection(conn *websocket.Conn) error {
 	return nil
 }
 
+// コネクション解消
 func (r *Receiver) ClearConnection() {
 	r.Mu.Lock()
 	defer r.Mu.Unlock()

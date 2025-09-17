@@ -15,6 +15,7 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
+// senderハンドラ
 func HandleSender(w http.ResponseWriter, r *http.Request, hub *broadcaster.Hub) {
 	conn, err := upgrader.Upgrade(w, r, nil) // wsにアップグレード
 	if err != nil {
@@ -27,6 +28,7 @@ func HandleSender(w http.ResponseWriter, r *http.Request, hub *broadcaster.Hub) 
 	go client.ReadPump()
 }
 
+// receiverハンドラ
 func HandleReceiver(w http.ResponseWriter, r *http.Request, receiver *broadcaster.Receiver, hubManager *broadcaster.HubManager, roomID string) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
