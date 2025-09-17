@@ -52,8 +52,16 @@ func main() {
 		fmt.Println("Server is active")
 
 	})
+	mux.HandleFunc("/hubs", func(w http.ResponseWriter, r *http.Request) {
+		activeHubs := len(hubManager.Hubs)
+		fmt.Printf("%d rooms active", activeHubs)
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprintf(w, `{"active_hubs": %d}`, activeHubs)
+	})
+
 	fmt.Println("WebSocket server started")
 	if err := http.ListenAndServe(":10000", mux); err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
+
 }
