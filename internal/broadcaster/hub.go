@@ -1,24 +1,31 @@
 package broadcaster
 
-import "log"
+import (
+	"log"
+	"sync"
+	"time"
+)
 
 type Hub struct {
-	Broadcast  chan []byte
-	Register   chan *SenderClient
-	Unregister chan *SenderClient
-	Clients    map[*SenderClient]bool
-	stop       chan struct{}
-	Receiver   *Receiver
+	Broadcast    chan []byte
+	Register     chan *SenderClient
+	Unregister   chan *SenderClient
+	Clients      map[*SenderClient]bool
+	stop         chan struct{}
+	Receiver     *Receiver
+	lastActivity time.Time
+	mu           sync.RWMutex
 }
 
 func NewHub(receiver *Receiver) *Hub {
 	return &Hub{
-		Broadcast:  make(chan []byte),
-		Register:   make(chan *SenderClient),
-		Unregister: make(chan *SenderClient),
-		Clients:    make(map[*SenderClient]bool),
-		stop:       make(chan struct{}),
-		Receiver:   receiver,
+		Broadcast:    make(chan []byte),
+		Register:     make(chan *SenderClient),
+		Unregister:   make(chan *SenderClient),
+		Clients:      make(map[*SenderClient]bool),
+		stop:         make(chan struct{}),
+		Receiver:     receiver,
+		lastActivity: time.Now(),
 	}
 }
 
@@ -43,4 +50,14 @@ func (h *Hub) Run() {
 			return // forループを抜けてゴルーチンを終了する
 		}
 	}
+}
+
+func (h *Hub) IsEmpty() bool {
+	h.Receiver.Mu.RLock() // Receiverの状態を安全に読む
+	defer h.Receiver.Mu.RUnlock()
+
+	h.mu.RLock() // Hubの状態を安全に読む
+	defer h.mu.RUnlock()
+
+	return len(h.Clients) == 0 && h.Receiver.Conn == nil
 }
