@@ -47,6 +47,11 @@ func main() {
 	mux.HandleFunc("/create", func(w http.ResponseWriter, r *http.Request) {
 		handler.HandleCreate(w, r, hubManager)
 	})
+	mux.HandleFunc("/healthcheck", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		fmt.Println("Server is active")
+
+	})
 	fmt.Println("WebSocket server started")
 	if err := http.ListenAndServe(":10000", mux); err != nil {
 		log.Fatal("ListenAndServe: ", err)
