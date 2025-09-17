@@ -14,9 +14,11 @@ type HubManager struct {
 }
 
 func NewHubManager() *HubManager {
-	return &HubManager{
+	m := &HubManager{
 		Hubs: make(map[string]*Hub),
 	}
+	go m.runJanitor()
+	return m
 }
 
 func (m *HubManager) GetHub(roomID string) (*Hub, error) {
@@ -55,7 +57,7 @@ func (m *HubManager) DeleteHub(roomID string) {
 	defer m.Mu.Unlock()
 
 	if hub, ok := m.Hubs[roomID]; ok {
-		close(hub.stop) 
+		close(hub.stop)
 
 		delete(m.Hubs, roomID)
 		log.Printf("Hub for room '%s' has been deleted.", roomID)
