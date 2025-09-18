@@ -22,9 +22,10 @@ func HandleSender(w http.ResponseWriter, r *http.Request, hub *broadcaster.Hub) 
 		log.Printf("Failed to upgrade sender connection: %v", err)
 		return
 	}
-	client := &broadcaster.SenderClient{Hub: hub, Conn: conn}
+	client := &broadcaster.SenderClient{Hub: hub, Conn: conn, Send: make(chan []byte, 256)}
 	client.Hub.Register <- client
 
+	go client.WritePump()
 	go client.ReadPump()
 }
 

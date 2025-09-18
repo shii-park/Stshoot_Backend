@@ -12,6 +12,27 @@ import (
 type SenderClient struct {
 	Hub  *Hub
 	Conn *websocket.Conn
+	Send chan []byte
+}
+
+func (c *SenderClient) WritePump() {
+	defer func() {
+		c.Conn.Close()
+	}()
+	for {
+		log.Print("called writePump")
+		message := <-c.Send
+		log.Printf("c.sent message: %s", message)
+		// if !ok {
+		// 	c.Conn.WriteMessage(websocket.CloseMessage, []byte{})
+		// }
+		log.Printf("c.sent message: %s", message)
+		err := c.Conn.WriteMessage(websocket.TextMessage, message)
+		if err != nil {
+			log.Printf("error writing message: %v", err)
+			return
+		}
+	}
 }
 
 // メッセージ読み取り
@@ -23,6 +44,7 @@ func (c *SenderClient) ReadPump() {
 	for {
 		var msg model.Message
 		err := c.Conn.ReadJSON(&msg)
+		log.Printf("sent message %s", msg.Text)
 		if err != nil {
 			break
 		}
@@ -33,6 +55,9 @@ func (c *SenderClient) ReadPump() {
 			log.Printf("error marshalling json: %v", err)
 			continue
 		}
-		c.Hub.Broadcast <- jsonBytes
+
+		hubMessage := &hubMessage{data: jsonBytes, sender: c}
+
+		c.Hub.Broadcast <- hubMessage
 	}
 }

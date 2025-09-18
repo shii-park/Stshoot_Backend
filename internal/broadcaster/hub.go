@@ -10,7 +10,7 @@ import (
 )
 
 type Hub struct {
-	Broadcast    chan []byte
+	Broadcast    chan *hubMessage
 	Register     chan *SenderClient
 	Unregister   chan *SenderClient
 	Clients      map[*SenderClient]bool
@@ -22,7 +22,7 @@ type Hub struct {
 
 func NewHub(receiver *Receiver) *Hub {
 	return &Hub{
-		Broadcast:    make(chan []byte),
+		Broadcast:    make(chan *hubMessage),
 		Register:     make(chan *SenderClient),
 		Unregister:   make(chan *SenderClient),
 		Clients:      make(map[*SenderClient]bool),
@@ -30,6 +30,11 @@ func NewHub(receiver *Receiver) *Hub {
 		Receiver:     receiver,
 		lastActivity: time.Now(),
 	}
+}
+
+type hubMessage struct {
+	data   []byte
+	sender *SenderClient
 }
 
 // Hubのメインループ
@@ -45,7 +50,13 @@ func (h *Hub) Run() {
 				log.Printf("Sender client disconnected. Total senders: %d", len(h.Clients))
 			}
 		case message := <-h.Broadcast: // メッセージが送られてきたとき
-			if err := h.Receiver.send(message); err != nil {
+			log.Printf("broadcast message: %s", message.data)
+			for client := range h.Clients {
+				if client != message.sender {
+					client.Send <- message.data
+				}
+			}
+			if err := h.Receiver.send(message.data); err != nil {
 				log.Printf("Could not send message to receiver: %v", err)
 			}
 		case <-h.stop: // stopチャネルが閉じられたとき
