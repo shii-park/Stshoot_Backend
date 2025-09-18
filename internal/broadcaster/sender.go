@@ -23,6 +23,7 @@ func (c *SenderClient) WritePump() {
 		message, ok := <-c.Send
 		if !ok {
 			c.Conn.WriteMessage(websocket.CloseMessage, []byte{})
+			return
 		}
 		log.Printf("c.sent message: %s", message)
 		err := c.Conn.WriteMessage(websocket.TextMessage, message)
