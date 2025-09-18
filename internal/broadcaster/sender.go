@@ -21,11 +21,11 @@ func (c *SenderClient) WritePump() {
 	}()
 	for {
 		log.Print("called writePump")
-		message := <-c.Send
+		message, ok := <-c.Send
 		log.Printf("c.sent message: %s", message)
-		// if !ok {
-		// 	c.Conn.WriteMessage(websocket.CloseMessage, []byte{})
-		// }
+		if !ok {
+			c.Conn.WriteMessage(websocket.CloseMessage, []byte{})
+		}
 		log.Printf("c.sent message: %s", message)
 		err := c.Conn.WriteMessage(websocket.TextMessage, message)
 		if err != nil {
