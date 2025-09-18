@@ -61,6 +61,9 @@ func (h *Hub) Run() {
 			}
 		case <-h.stop: // stopチャネルが閉じられたとき
 			log.Printf("Hub for receiver %p is stopping.", h.Receiver)
+			for client := range h.Clients {
+				close(client.Send)
+			}
 			return // forループを抜けてゴルーチンを終了する
 		}
 	}
