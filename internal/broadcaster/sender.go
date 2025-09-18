@@ -20,9 +20,7 @@ func (c *SenderClient) WritePump() {
 		c.Conn.Close()
 	}()
 	for {
-		log.Print("called writePump")
 		message, ok := <-c.Send
-		log.Printf("c.sent message: %s", message)
 		if !ok {
 			c.Conn.WriteMessage(websocket.CloseMessage, []byte{})
 		}
