@@ -22,12 +22,13 @@ func (c *SenderClient) WritePump() {
 	for {
 		message, ok := <-c.Send
 		if !ok {
-			c.Conn.WriteMessage(websocket.CloseMessage, []byte{})
+			if err := c.Conn.WriteMessage(websocket.CloseMessage, []byte{}); err != nil {
+				log.Printf("error writing close message: %v", err)
+			}
 			return
 		}
 		log.Printf("c.sent message: %s", message)
-		err := c.Conn.WriteMessage(websocket.TextMessage, message)
-		if err != nil {
+		if err := c.Conn.WriteMessage(websocket.TextMessage, message); err != nil {
 			log.Printf("error writing message: %v", err)
 			return
 		}
